@@ -1,0 +1,13 @@
+.services-container-shop {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 22px;
+}
+
+.service-image-shop{
+    width: 244px;
+    height: 164px;
+    object-fit: cover;
+    border-radius: 5%;
+}
