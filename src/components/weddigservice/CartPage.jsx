@@ -160,7 +160,7 @@ const CartPage = () => {
               transition={{ duration: 0.3 }}
             >
               <img
-                src={product.thumbnail}
+                src={product.thumbnail.replace('http://', 'https://')}
                 alt={product.name}
                 className="product-image"
               />
@@ -268,7 +268,7 @@ const CartPage = () => {
                 placeholder="Enter your mobile number"
                 value={mobileNumber}
                 onChange={handleMobileChange}
-                maxLength="10"
+                maxLength="14"
                 className="input-field-for-address"
                 required
               />
@@ -315,7 +315,7 @@ const CartPage = () => {
           <ul className="order-details">
             {orderDetails.products.map((product) => (
               <li key={product.productId} className="order-item">
-                <img src={product.thumbnail} alt={product.name} className="order-item-image" />
+                <img src={product.thumbnail.replace('http://', 'https://')} alt={product.name} className="order-item-image" />
                 <div className="order-item-info">
                   <span className="order-item-quantity">Quantity: {product.quantity}</span>
                   <span className="order-item-name">{product.name}</span>
