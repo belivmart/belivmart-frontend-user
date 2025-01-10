@@ -176,3 +176,76 @@
 .closed-message {
   color: #999;
 }
+
+.selected-shop {
+  font-size: 0.9rem;
+  color: var(--secondary-text-color);
+  margin-bottom: 5px;
+}
+
+
+/* .product-actions-v{
+  width: 100%;
+} */
+.product-actions-shop{
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 100%;
+}
+/* Dropdown Styling for Shop Selection */
+.product-actions-dropdown {
+  padding: 8px 15px;
+  font-size: 1rem;
+  border-radius: 5px;
+  border: 1px solid var(--border-color);
+  background-color: #fff;
+  color: var(--text-color);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 200px; /* Adjust the width if necessary */
+}
+
+.product-actions-dropdown:focus {
+  border-color: var(--primary-color);
+  outline: none;
+}
+
+.product-actions-dropdown option {
+  padding: 10px;
+  background-color: #fff;
+  color: var(--text-color);
+}
+
+.product-actions-dropdown option:hover {
+  background-color: var(--primary-color-light);
+  color: #fff;
+}
+
+/* Optional: Add a custom arrow for better UX */
+.product-actions-dropdown::-ms-expand {
+  display: none; /* Remove default arrow in IE */
+}
+
+.product-actions-dropdown::after {
+  content: "▼";
+  font-size: 1rem;
+  color: var(--primary-color);
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+/* Add a container for dropdown when the product actions section is hovered */
+.product-actions:hover .product-actions-dropdown {
+  border-color: var(--primary-color-dark); /* Slightly darker border on hover */
+}
+
+/* For better positioning on mobile */
+@media (max-width: 768px) {
+  .product-actions-dropdown {
+    width: 100%; /* Make the dropdown take full width on smaller screens */
+  }
+}

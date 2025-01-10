@@ -1,12 +1,12 @@
 // import React, { useEffect, useState } from "react";
-// import { Link, useParams } from "react-router-dom";
+// import { useParams } from "react-router-dom";
 // import "../../styles/category.css";
 // import "../../styles/cartpop.css";
 // import { motion, AnimatePresence } from "framer-motion";
 // import { makeApi } from "../../api/callApi";
 // import Loader from "../../components/loader/loader";
+// import { Link } from "react-router-dom";
 
-// const SHOP_OPTIONS = ["Jagdish ji", "Rituraj", "Aroma"];
 
 // function CategoryPage() {
 //   const { category } = useParams();
@@ -15,7 +15,6 @@
 //   const [cart, setCart] = useState({});
 //   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
-//   // Scroll to the top on initial load
 //   useEffect(() => {
 //     if (isInitialLoad) {
 //       window.scrollTo(0, 0);
@@ -51,10 +50,13 @@
 //   const handleAddToCart = (product, selectedShop) => {
 //     setCart((prevCart) => {
 //       const updatedCart = { ...prevCart };
+//       const shopPrice = product.shopPrices?.find(shop => shop.shopname === selectedShop);
+//       const finalPrice = shopPrice ? shopPrice.price : product.FinalPrice;
 //       updatedCart[product._id] = {
 //         ...product,
 //         quantity: product.minorderquantity || 1,
-//         shop: selectedShop || "Jagdish ji",
+//         shop: selectedShop,
+//         FinalPrice: finalPrice,
 //       };
 //       return updatedCart;
 //     });
@@ -63,8 +65,11 @@
 //   const handleUpdateShop = (productId, newShop) => {
 //     setCart((prevCart) => {
 //       const updatedCart = { ...prevCart };
-//       if (updatedCart[productId]) {
+//       const product = products.find(prod => prod._id === productId);
+//       if (updatedCart[productId] && product) {
+//         const shopPrice = product.shopPrices?.find(shop => shop.shopname === newShop);
 //         updatedCart[productId].shop = newShop;
+//         updatedCart[productId].FinalPrice = shopPrice ? shopPrice.price : product.FinalPrice;
 //       }
 //       return updatedCart;
 //     });
@@ -96,6 +101,13 @@
 //       delete updatedCart[productId];
 //       return updatedCart;
 //     });
+//   };
+
+//     const getTotalCartValue = () => {
+//     return Object.values(cart).reduce(
+//       (total, item) => total + item.FinalPrice * item.quantity,
+//       0
+//     );
 //   };
 
 //   return (
@@ -133,25 +145,46 @@
 //                 />
 //                 <div className="product-info">
 //                   <h2 className="product-name">{product.name}</h2>
-//                   <p className="product-price">
+//                   {/* <p className="product-price">
 //                     <span className="original-price">₹{product.price}</span>
 //                     <span className="final-price">₹{product.FinalPrice}</span>
+//                   </p> */}
+
+//                   <p className="product-price">
+//                     <span className="original-price">
+//                       ₹
+//                       {cart[product._id]?.shop
+//                         ? product.shopPrices?.find(
+//                           (shop) => shop.shopname === cart[product._id]?.shop
+//                         )?.price || product.price
+//                         : product.price}
+//                     </span>
+//                     <span className="final-price">
+//                       ₹
+//                       {cart[product._id]?.shop
+//                         ? product.shopPrices?.find(
+//                           (shop) => shop.shopname === cart[product._id]?.shop
+//                         )?.price || product.FinalPrice
+//                         : product.FinalPrice}
+//                     </span>
 //                   </p>
 
 //                   {cart[product._id] ? (
 //                     <div className="product-actions">
-//                       <select
-//                         value={cart[product._id].shop}
-//                         onChange={(e) =>
-//                           handleUpdateShop(product._id, e.target.value)
-//                         }
-//                       >
-//                         {SHOP_OPTIONS.map((shop) => (
-//                           <option key={shop} value={shop}>
-//                             {shop}
-//                           </option>
-//                         ))}
-//                       </select>
+//                       {product.shopPrices ? (
+//                         <select
+//                           value={cart[product._id].shop}
+//                           onChange={(e) =>
+//                             handleUpdateShop(product._id, e.target.value)
+//                           }
+//                         >
+//                           {product.shopPrices.map((shop) => (
+//                             <option key={shop._id} value={shop.shopname}>
+//                               {shop.shopname}
+//                             </option>
+//                           ))}
+//                         </select>
+//                       ) : null}
 //                       <motion.button
 //                         className="quantity-btn decrease-btn"
 //                         onClick={() => handleDecreaseQuantity(product)}
@@ -174,21 +207,25 @@
 //                     </div>
 //                   ) : (
 //                     <motion.div>
-//                       <select
-//                         defaultValue={"Jagdish ji"}
-//                         onChange={(e) =>
-//                           handleAddToCart(product, e.target.value)
-//                         }
-//                       >
-//                         {SHOP_OPTIONS.map((shop) => (
-//                           <option key={shop} value={shop}>
-//                             {shop}
-//                           </option>
-//                         ))}
-//                       </select>
+//                       {product.shopPrices ? (
+//                         <select
+//                           defaultValue={product.shopPrices[0]?.shopname || ""}
+//                           onChange={(e) =>
+//                             handleAddToCart(product, e.target.value)
+//                           }
+//                         >
+//                           {product.shopPrices.map((shop) => (
+//                             <option key={shop._id} value={shop.shopname}>
+//                               {shop.shopname}
+//                             </option>
+//                           ))}
+//                         </select>
+//                       ) : null}
 //                       <motion.button
 //                         className="add-to-cart-btn"
-//                         onClick={() => handleAddToCart(product, "Jagdish ji")}
+//                         onClick={() =>
+//                           handleAddToCart(product, product.shopPrices?.[0]?.shopname || "")
+//                         }
 //                       >
 //                         Add to Cart
 //                       </motion.button>
@@ -222,6 +259,19 @@
 //                     </li>
 //                   ))}
 //                 </ul>
+//                 <div className="cart-footer">
+//               <motion.p
+//                 key={getTotalCartValue()}
+//                 initial={{ opacity: 0, y: 10 }}
+//                 animate={{ opacity: 1, y: 0 }}
+//                 transition={{ duration: 0.5 }}
+//               >
+//                 Total: ₹{getTotalCartValue()}
+//               </motion.p>
+//               <Link to="/cart" style={{ textDecoration: "none" }}>
+//                 <button className="buy-now-btn">Buy Now</button>
+//               </Link>
+//             </div>
 //               </motion.div>
 //             )}
 //           </AnimatePresence>
@@ -232,6 +282,7 @@
 // }
 
 // export default CategoryPage;
+
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import "../../styles/category.css";
@@ -240,7 +291,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { makeApi } from "../../api/callApi";
 import Loader from "../../components/loader/loader";
 import { Link } from "react-router-dom";
-
 
 function CategoryPage() {
   const { category } = useParams();
@@ -260,8 +310,13 @@ function CategoryPage() {
     async function fetchCategories() {
       setLoading(true);
       try {
-        const response = await makeApi(`/api/get-products-by-service-id/${category}`, "GET");
-        const sortedProducts = response.data.products.sort((a, b) => a.FinalPrice - b.FinalPrice);
+        const response = await makeApi(
+          `/api/get-products-by-service-id/${category}`,
+          "GET"
+        );
+        const sortedProducts = response.data.products.sort(
+          (a, b) => a.FinalPrice - b.FinalPrice
+        );
         setProducts(sortedProducts);
       } catch (error) {
         console.log("Error fetching categories:", error);
@@ -284,7 +339,9 @@ function CategoryPage() {
   const handleAddToCart = (product, selectedShop) => {
     setCart((prevCart) => {
       const updatedCart = { ...prevCart };
-      const shopPrice = product.shopPrices?.find(shop => shop.shopname === selectedShop);
+      const shopPrice = product.shopPrices?.find(
+        (shop) => shop.shopname === selectedShop
+      );
       const finalPrice = shopPrice ? shopPrice.price : product.FinalPrice;
       updatedCart[product._id] = {
         ...product,
@@ -299,11 +356,15 @@ function CategoryPage() {
   const handleUpdateShop = (productId, newShop) => {
     setCart((prevCart) => {
       const updatedCart = { ...prevCart };
-      const product = products.find(prod => prod._id === productId);
+      const product = products.find((prod) => prod._id === productId);
       if (updatedCart[productId] && product) {
-        const shopPrice = product.shopPrices?.find(shop => shop.shopname === newShop);
+        const shopPrice = product.shopPrices?.find(
+          (shop) => shop.shopname === newShop
+        );
         updatedCart[productId].shop = newShop;
-        updatedCart[productId].FinalPrice = shopPrice ? shopPrice.price : product.FinalPrice;
+        updatedCart[productId].FinalPrice = shopPrice
+          ? shopPrice.price
+          : product.FinalPrice;
       }
       return updatedCart;
     });
@@ -337,7 +398,7 @@ function CategoryPage() {
     });
   };
 
-    const getTotalCartValue = () => {
+  const getTotalCartValue = () => {
     return Object.values(cart).reduce(
       (total, item) => total + item.FinalPrice * item.quantity,
       0
@@ -379,11 +440,11 @@ function CategoryPage() {
                 />
                 <div className="product-info">
                   <h2 className="product-name">{product.name}</h2>
-                  {/* <p className="product-price">
-                    <span className="original-price">₹{product.price}</span>
-                    <span className="final-price">₹{product.FinalPrice}</span>
-                  </p> */}
-
+                  {cart[product._id]?.shop && (
+                    <p className="selected-shop">
+                      Shop: <strong>{cart[product._id]?.shop}</strong>
+                    </p>
+                  )}
                   <p className="product-price">
                     <span className="original-price">
                       ₹
@@ -404,28 +465,35 @@ function CategoryPage() {
                   </p>
 
                   {cart[product._id] ? (
-                    <div className="product-actions">
-                      {product.shopPrices ? (
+                    <div className="product-actions-shop "  >
+                      <div  >
+                      {product.shopPrices && (
                         <select
-                          value={cart[product._id].shop}
-                          onChange={(e) =>
-                            handleUpdateShop(product._id, e.target.value)
-                          }
+                        value={cart[product._id].shop}
+                        onChange={(e) =>
+                          handleUpdateShop(product._id, e.target.value)
+                        }
+                        className="product-actions-dropdown"
                         >
                           {product.shopPrices.map((shop) => (
-                            <option key={shop._id} value={shop.shopname}>
+                            
+                            <option key={shop._id}  value={shop.shopname}>
                               {shop.shopname}
                             </option>
                           ))}
                         </select>
-                      ) : null}
+                      )}
+                      </div>
+                      <div>
                       <motion.button
                         className="quantity-btn decrease-btn"
                         onClick={() => handleDecreaseQuantity(product)}
                       >
                         -
                       </motion.button>
-                      <span className="quantity">{cart[product._id].quantity}</span>
+                      <span className="quantity">
+                        {cart[product._id].quantity}
+                      </span>
                       <motion.button
                         className="quantity-btn increase-btn"
                         onClick={() => handleIncreaseQuantity(product)}
@@ -438,15 +506,17 @@ function CategoryPage() {
                       >
                         Remove
                       </motion.button>
+                      </div>
                     </div>
                   ) : (
                     <motion.div>
-                      {product.shopPrices ? (
+                      {product.shopPrices && (
                         <select
                           defaultValue={product.shopPrices[0]?.shopname || ""}
                           onChange={(e) =>
                             handleAddToCart(product, e.target.value)
                           }
+                          className="product-actions-dropdown"
                         >
                           {product.shopPrices.map((shop) => (
                             <option key={shop._id} value={shop.shopname}>
@@ -454,11 +524,14 @@ function CategoryPage() {
                             </option>
                           ))}
                         </select>
-                      ) : null}
+                      )}
                       <motion.button
                         className="add-to-cart-btn"
                         onClick={() =>
-                          handleAddToCart(product, product.shopPrices?.[0]?.shopname || "")
+                          handleAddToCart(
+                            product,
+                            product.shopPrices?.[0]?.shopname || ""
+                          )
                         }
                       >
                         Add to Cart
@@ -494,18 +567,18 @@ function CategoryPage() {
                   ))}
                 </ul>
                 <div className="cart-footer">
-              <motion.p
-                key={getTotalCartValue()}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-              >
-                Total: ₹{getTotalCartValue()}
-              </motion.p>
-              <Link to="/cart" style={{ textDecoration: "none" }}>
-                <button className="buy-now-btn">Buy Now</button>
-              </Link>
-            </div>
+                  <motion.p
+                    key={getTotalCartValue()}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    Total: ₹{getTotalCartValue()}
+                  </motion.p>
+                  <Link to="/cart" style={{ textDecoration: "none" }}>
+                    <button className="buy-now-btn">Buy Now</button>
+                  </Link>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
