@@ -87,7 +87,7 @@ function CategoryPage() {
         ...product,
         shop: selectedShop,
         FinalPrice: shopDetails?.price || product.FinalPrice,
-        quantity:  product.minorderquantity || 1,
+        quantity: product.minorderquantity || 1,
       },
     }));
   };
@@ -216,11 +216,19 @@ function CategoryPage() {
                         }
                         className="product-actions-dropdown"
                       >
-                        {product.shopPrices.map((shop) => (
+                        {/* {product.shopPrices.map((shop) => (
                           <option key={shop._id} value={shop.shopname}>
                             {shop.shopname} - ₹{shop.price}
                           </option>
-                        ))}
+                        ))} */}
+                        {product.shopPrices
+                          .sort((a, b) => a.poistionId - b.poistionId) // Sort based on positionId
+                          .map((shop) => (
+                            <option key={shop._id} value={shop.shopname}>
+                              {shop.shopname} - ₹{shop.price}
+                            </option>
+                          ))}
+
                       </select>
                     </div>
                   )}
