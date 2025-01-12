@@ -22,7 +22,7 @@
   position: relative;
   display: flex;
   align-items: center;
-  padding: 10px;
+  padding: 5px 10px;
   border: 1px solid var(--border-color);
   border-radius: 10px;
   background-color: #fff;
@@ -43,12 +43,12 @@
   margin-right: 10px;
   transition: all 0.5s ease;
 }
+
 .product-image:hover {
   width: 150px;
   height: 120px;
   object-fit: cover;
   border-radius: 4px;
-  margin-right: 10px;
 }
 
 .product-info {
@@ -56,14 +56,14 @@
 }
 
 .product-name {
-  font-size: 1.2rem;
+  font-size: 15px;
   color: var(--text-color);
   margin-bottom: 5px;
 }
 
 .product-price {
-  font-size: 1rem;
-  color: var(--text-secondary-color);
+  font-size: 10px;
+  color: var(--text-color);
 }
 
 .product-actions {
@@ -85,7 +85,6 @@
   cursor: pointer;
   transition: background-color 0.3s, transform 0.3s;
 }
-
 
 .quantity-btn:active,
 .add-to-cart-btn:active,
@@ -109,18 +108,9 @@
   background-color: #d32f2f;
 }
 
-
-
-/* Add this to your existing CSS file (category.css) */
-
-.product-price {
-  font-size: 1.2rem;
-  color: var(--text-color);
-}
-
 .original-price {
   font-size: 1rem;
-  color: var(--secondary-text-color); 
+  color: var(--secondary-text-color);
   text-decoration: line-through;
   margin-right: 10px;
 }
@@ -143,34 +133,9 @@
   transition: background-color 0.3s, transform 0.3s;
 }
 
-/* Add this to your existing CSS file (category.css) */
-
 .product-card.closed {
   filter: grayscale(100%);
-  pointer-events: none; /* Prevent interaction with closed items */
-}
-
-.closed-message {
-  color: #999;
-  font-size: 1.2rem;
-  font-weight: bold;
-  position: absolute;
-  bottom:10px;
-  right: -5%;
-  transform: translateX(-50%);
-  background-color: rgba(0, 0, 0, 0.6);
-  color: #cb0000;
-  padding: 5px 10px;
-  border-radius: 5px;
-}
-
-
-
-
-
-.product-card.closed {
-  filter: grayscale(100%);
-  pointer-events: none; /* Prevent interaction with closed items */
+  pointer-events: none;
 }
 
 .closed-message {
@@ -183,27 +148,23 @@
   margin-bottom: 5px;
 }
 
-
-/* .product-actions-v{
-  width: 100%;
-} */
-.product-actions-shop{
+.product-actions-shop {
   display: flex;
   flex-direction: column;
   gap: 5px;
   width: 100%;
 }
-/* Dropdown Styling for Shop Selection */
+
 .product-actions-dropdown {
-  padding: 8px 15px;
-  font-size: 1rem;
+  padding: 5px 5px;
+  font-size: 13px;
   border-radius: 5px;
   border: 1px solid var(--border-color);
   background-color: #fff;
   color: var(--text-color);
   cursor: pointer;
   transition: all 0.3s ease;
-  width: 200px; /* Adjust the width if necessary */
+  width: 200px;
 }
 
 .product-actions-dropdown:focus {
@@ -222,14 +183,23 @@
   color: #fff;
 }
 
-/* Optional: Add a custom arrow for better UX */
-.product-actions-dropdown::-ms-expand {
-  display: none; /* Remove default arrow in IE */
+/* Title before the dropdown */
+.shop-selection-title {
+  font-size: 1rem;
+  color: var(--primary-color);
+  margin-bottom: 5px;
+  font-weight: bold;
 }
 
+/* Optional: Remove default dropdown arrow in IE */
+.product-actions-dropdown::-ms-expand {
+  display: none;
+}
+
+/* Customize arrow */
 .product-actions-dropdown::after {
   content: "▼";
-  font-size: 1rem;
+  font-size: 14px;
   color: var(--primary-color);
   position: absolute;
   right: 10px;
@@ -238,14 +208,10 @@
   pointer-events: none;
 }
 
-/* Add a container for dropdown when the product actions section is hovered */
-.product-actions:hover .product-actions-dropdown {
-  border-color: var(--primary-color-dark); /* Slightly darker border on hover */
-}
-
 /* For better positioning on mobile */
 @media (max-width: 768px) {
   .product-actions-dropdown {
-    width: 100%; /* Make the dropdown take full width on smaller screens */
+    width: 57%;
+    margin-bottom: 10px;
   }
 }
