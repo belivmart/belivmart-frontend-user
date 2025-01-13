@@ -214,13 +214,8 @@ function CategoryPage() {
                             ? handleShopChange(product, e.target.value)
                             : handleAddToCart(product, e.target.value)
                         }
-                        className="product-actions-dropdown"
+                        className="product-actions-dropdown" 
                       >
-                        {/* {product.shopPrices.map((shop) => (
-                          <option key={shop._id} value={shop.shopname}>
-                            {shop.shopname} - ₹{shop.price}
-                          </option>
-                        ))} */}
                         {product.shopPrices
                           .sort((a, b) => a.poistionId - b.poistionId) // Sort based on positionId
                           .map((shop) => (

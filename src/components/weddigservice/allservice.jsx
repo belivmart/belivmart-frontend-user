@@ -118,33 +118,28 @@ function AllServicesPage() {
     );
   };
 
-  const handleAddToCart = (product) => {
-    setCart((prevCart) => {
-      const updatedCart = { ...prevCart };
-      const existingProduct = prevCart[product._id];
-
-      if (!existingProduct) {
-        updatedCart[product._id] = {
-          ...product,
-          quantity: product.minorderquantity || 1,
-        };
-      }
-
-      return updatedCart;
-    });
+  const handleAddToCart = (product, selectedShop) => {
+    const shopDetails = product.shopPrices.find(
+      (shop) => shop.shopname === selectedShop
+    );
+    setCart((prevCart) => ({
+      ...prevCart,
+      [product._id]: {
+        ...product,
+        shop: selectedShop,
+        FinalPrice: shopDetails?.price || product.FinalPrice,
+        quantity: product.minorderquantity || 1,
+      },
+    }));
   };
-
   const handleIncreaseQuantity = (product) => {
-    setCart((prevCart) => {
-      const updatedCart = {
-        ...prevCart,
-        [product._id]: {
-          ...product,
-          quantity: (prevCart[product._id]?.quantity || 0) + 1,
-        },
-      };
-      return updatedCart;
-    });
+    setCart((prevCart) => ({
+      ...prevCart,
+      [product._id]: {
+        ...prevCart[product._id],
+        quantity: prevCart[product._id].quantity + 1,
+      },
+    }));
   };
 
   const handleDecreaseQuantity = (product) => {
@@ -152,9 +147,10 @@ function AllServicesPage() {
       const updatedCart = { ...prevCart };
       const existingProduct = prevCart[product._id];
 
+      // Prevent quantity from going below minorderquantity
       if (existingProduct.quantity > (product.minorderquantity || 1)) {
         updatedCart[product._id].quantity -= 1;
-      } else {
+      } else { 
         delete updatedCart[product._id];
       }
 
@@ -166,7 +162,6 @@ function AllServicesPage() {
     setCart((prevCart) => {
       const updatedCart = { ...prevCart };
       delete updatedCart[productId];
-      localStorage.setItem("cart", JSON.stringify(updatedCart));
       return updatedCart;
     });
   };
@@ -280,113 +275,108 @@ function AllServicesPage() {
       {isSearchingProducts ? (
         <div className="product-list">
           {products.map((product) => (
-            <motion.div
-              className="product-card"
-              key={product._id}
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <img
-                src={product.thumbnail.replace("http://", "https://")}
-                alt={product.name}
-                className="product-image"
-              />
-              <div className="product-info">
-                <h2 className="product-name">{product.name}</h2>
-                {/* {product.shopPrices?.length > 0 && (
-                  <div>
-                    Shop name: <b>{cart[product._id]?.shop || product.defaultShop || "N/A"}</b>
-                  </div>
-                )} */}
-
-                <p className="product-price">
-                  <span className="original-price">₹{product.price}</span>
-                  <span className="final-price">
-                    ₹{cart[product._id]?.FinalPrice ||
-                      product.defaultPrice ||
-                      product.FinalPrice}
-                  </span>
-                </p>
-                {product.minorderquantity && (
-                  <p style={{ color: "red" }}>
-                    Min Order Quantity: {product.minorderquantity}
-                  </p>
-                )}
-                {product.shopPrices?.length > 0 && (
-                  <div className="shop-selection">
-                    <span style={{ cursor: "pointer", color: "red", fontSize: "13px" }} >
-                      <div>
-
-                        change shop
-
-                      </div>
-                    </span>
-                    <select
-                      value={cart[product._id]?.shop || product.defaultShop}
-                      onChange={(e) =>
-                        cart[product._id]
-                          ? handleShopChange(product, e.target.value)
-                          : handleAddToCart(product, e.target.value)
-                      }
-                      className="product-actions-dropdown"
-                    >
-                      {/* {product.shopPrices.map((shop) => (
+                      <motion.div
+                        className="product-card"
+                        key={product._id}
+                        initial={{ opacity: 0, y: 50 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <img
+                          src={product.thumbnail.replace("http://", "https://")}
+                          alt={product.name}
+                          className="product-image"
+                        />
+                        <div className="product-info">
+                          <h2 className="product-name">{product.name}</h2>
+                          {product.shopPrices?.length > 0 && (
+                            <div>
+                              Shop name: <b>{cart[product._id]?.shop || product.defaultShop || "N/A"}</b>
+                            </div>
+                          )}
+        
+                          <p className="product-price">
+                            <span className="original-price">₹{product.price}</span>
+                            <span className="final-price">
+                              ₹{cart[product._id]?.FinalPrice ||
+                                product.defaultPrice ||
+                                product.FinalPrice}
+                            </span>
+                          </p>
+                          {product.minorderquantity && (
+                            <p style={{ color: "red" }}>
+                              Min Order Quantity: {product.minorderquantity}
+                            </p>
+                          )}
+                          {product.shopPrices?.length > 0 && (
+                            <div className="shop-selection">
+                              <span style={{ cursor: "pointer", color: "red", fontSize: "13px" }} >
+                                <div>
+        
+                                  change shop
+        
+                                </div>
+                              </span>
+                              <select
+                                value={cart[product._id]?.shop || product.defaultShop}
+                                onChange={(e) =>
+                                  cart[product._id]
+                                    ? handleShopChange(product, e.target.value)
+                                    : handleAddToCart(product, e.target.value)
+                                }
+                                className="product-actions-dropdown" 
+                              >
+                                {product.shopPrices
+                                  .sort((a, b) => a.poistionId - b.poistionId) // Sort based on positionId
+                                  .map((shop) => (
                                     <option key={shop._id} value={shop.shopname}>
                                       {shop.shopname} - ₹{shop.price}
                                     </option>
-                                  ))} */}
-                      {product.shopPrices
-                        .sort((a, b) => a.poistionId - b.poistionId) // Sort based on positionId
-                        .map((shop) => (
-                          <option key={shop._id} value={shop.shopname}>
-                            {shop.shopname} - ₹{shop.price}
-                          </option>
-                        ))}
-
-                    </select>
-                  </div>
-                )}
-                {cart[product._id] ? (
-                  <div className="quantity-control">
-                    <motion.button
-                      className="quantity-btn decrease-btn"
-                      onClick={() => handleDecreaseQuantity(product)}
-                    >
-                      -
-                    </motion.button>
-                    <span className="quantity">
-                      {cart[product._id]?.quantity}
-                    </span>
-                    <motion.button
-                      className="quantity-btn increase-btn"
-                      onClick={() => handleIncreaseQuantity(product)}
-                    >
-                      +
-                    </motion.button>
-                    <motion.button
-                      className="remove-btn"
-                      onClick={() => clearFromCart(product._id)}
-                    >
-                      Remove
-                    </motion.button>
-                  </div>
-                ) : (
-                  <motion.button
-                    className="add-to-cart-btn"
-                    onClick={() =>
-                      handleAddToCart(
-                        product,
-                        product.defaultShop || product.shopPrices[0]?.shopname
-                      )
-                    }
-                  >
-                    Add to Cart
-                  </motion.button>
-                )}
-              </div>
-            </motion.div>
-          ))}
+                                  ))}
+        
+                              </select>
+                            </div>
+                          )}
+                          {cart[product._id] ? (
+                            <div className="quantity-control">
+                              <motion.button
+                                className="quantity-btn decrease-btn"
+                                onClick={() => handleDecreaseQuantity(product)}
+                              >
+                                -
+                              </motion.button>
+                              <span className="quantity">
+                                {cart[product._id]?.quantity}
+                              </span>
+                              <motion.button
+                                className="quantity-btn increase-btn"
+                                onClick={() => handleIncreaseQuantity(product)}
+                              >
+                                +
+                              </motion.button>
+                              <motion.button
+                                className="remove-btn"
+                                onClick={() => clearFromCart(product._id)}
+                              >
+                                Remove
+                              </motion.button>
+                            </div>
+                          ) : (
+                            <motion.button
+                              className="add-to-cart-btn"
+                              onClick={() =>
+                                handleAddToCart(
+                                  product,
+                                  product.defaultShop || product.shopPrices[0]?.shopname
+                                )
+                              }
+                            >
+                              Add to Cart
+                            </motion.button>
+                          )}
+                        </div>
+                      </motion.div>
+                    ))}
         </div>
       ) : (
         <div className="services-container">
