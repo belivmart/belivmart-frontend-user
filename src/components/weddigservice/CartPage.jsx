@@ -57,7 +57,7 @@ const CartPage = () => {
 
   const handleDecreaseQuantity = (id) => {
     const updatedCart = cart.map((item) =>
-      item._id === id && item.quantity > 1
+      item._id === id && item.quantity > item.minorderquantity
         ? { ...item, quantity: item.quantity - 1 }
         : item
     );
@@ -180,6 +180,11 @@ const CartPage = () => {
                   <span className="original-price">₹{product.price}</span>
                   <span className="final-price">₹{product.FinalPrice}</span>
                 </p>
+                {product.minorderquantity && (
+                    <p style={{ color: "red" }}>
+                      Min Order Quantity: {product.minorderquantity}
+                    </p>
+                  )}
               </div>
               <div className="cart-item-actions">
                 <button

@@ -136,7 +136,7 @@ function CategoryPage() {
       // Prevent quantity from going below minorderquantity
       if (existingProduct.quantity > (product.minorderquantity || 1)) {
         updatedCart[product._id].quantity -= 1;
-      } else {
+      } else { 
         delete updatedCart[product._id];
       }
 
