@@ -44,10 +44,23 @@ function AllServicesPage() {
     async function fetchCategories() {
       setLoading(true);
       try {
-
         const response = await makeApi("/api/gettopsaller", "GET");
+        const sortedProducts = response.data.products.sort(
+          (a, b) => a.FinalPrice - b.FinalPrice
+        );
 
-        setTopsall(response.data.products);
+        // Add default shop and price for products with shopPrices
+        const updatedProducts = sortedProducts.map((product) => {
+          if (product.shopPrices?.length > 0) {
+            product.defaultShop = product.shopPrices[0].shopname;
+            product.defaultPrice = product.shopPrices[0].price;
+            product.defaultFinalPrice = product.shopPrices[0].FinalPrice;
+          }
+          return product;
+        });
+
+        setTopsall(updatedProducts);
+        // setTopsall(response.data.products);
       } catch (error) {
         console.log("Error fetching categories:", error);
       } finally {
@@ -70,7 +83,22 @@ function AllServicesPage() {
       setLoading(true);
       try {
         const response = await makeApi(`/api/products/search?word=${searchQuery}`, "GET");
-        setProducts(response.data.products);
+        // setProducts(response.data.products);
+        const sortedProducts = response.data.products.sort(
+          (a, b) => a.FinalPrice - b.FinalPrice
+        );
+
+        // Add default shop and price for products with shopPrices
+        const updatedProducts = sortedProducts.map((product) => {
+          if (product.shopPrices?.length > 0) {
+            product.defaultShop = product.shopPrices[0].shopname;
+            product.defaultPrice = product.shopPrices[0].price;
+            product.defaultFinalPrice = product.shopPrices[0].FinalPrice;
+          }
+          return product;
+        });
+
+        setProducts(updatedProducts);
         setIsSearchingProducts(true);
       } catch (error) {
         console.log("Error fetching products:", error);
@@ -118,7 +146,21 @@ function AllServicesPage() {
     );
   };
 
-  const handleAddToCart = (product, selectedShop) => {
+  // const handleAddToCart = (product, selectedShop) => {
+  //   const shopDetails = product.shopPrices.find(
+  //     (shop) => shop.shopname === selectedShop
+  //   );
+  //   setCart((prevCart) => ({
+  //     ...prevCart,
+  //     [product._id]: {
+  //       ...product,
+  //       shop: selectedShop,
+  //       FinalPrice: shopDetails?.price || product.FinalPrice,
+  //       quantity: product.minorderquantity || 1,
+  //     },
+  //   }));
+  // };
+   const handleAddToCart = (product, selectedShop) => {
     const shopDetails = product.shopPrices.find(
       (shop) => shop.shopname === selectedShop
     );
@@ -127,11 +169,13 @@ function AllServicesPage() {
       [product._id]: {
         ...product,
         shop: selectedShop,
-        FinalPrice: shopDetails?.price || product.FinalPrice,
+        FinalPrice: shopDetails?.FinalPrice || product.defaultFinalPrice || product.FinalPrice,
+        price: shopDetails?.price || product.defaultPrice || product.price,
         quantity: product.minorderquantity || 1,
       },
     }));
   };
+
   const handleIncreaseQuantity = (product) => {
     setCart((prevCart) => ({
       ...prevCart,
@@ -150,7 +194,7 @@ function AllServicesPage() {
       // Prevent quantity from going below minorderquantity
       if (existingProduct.quantity > (product.minorderquantity || 1)) {
         updatedCart[product._id].quantity -= 1;
-      } else { 
+      } else {
         delete updatedCart[product._id];
       }
 
@@ -175,86 +219,119 @@ function AllServicesPage() {
       [product._id]: {
         ...prevCart[product._id],
         shop: selectedShop,
-        FinalPrice: shopDetails?.price || product.FinalPrice,
+        FinalPrice: shopDetails?.FinalPrice || product.defaultFinalPrice || product.FinalPrice,
+        price: shopDetails?.price || product.defaultPrice || product.price,
       },
     }));
   };
-
   return (
     <div className="all-services-page">
       <div className="product-list">
         {topsall.map((product) => (
           <motion.div
-            className="product-card"
-            key={product._id}
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <img
-              src={product.thumbnail.replace("http://", "https://")}
-              alt={product.name}
-              className="product-image"
-            />
-            <div className="product-info">
-              <h2 className="product-name">{product.name}</h2>
-              <p className="product-price">
-                <span className="original-price">₹{product.price}</span>
-                <span className="final-price">₹{product.FinalPrice}</span>
-              </p>
-              {product.minorderquantity && (
-                <p style={{ color: "red" }}>
-                  Min Order Quantity: {product.minorderquantity}
-                </p>
-              )}
-              <div className="product-actions">
-                {cart[product._id] ? (
-                  <>
-                    <div className="quantity-control">
-                      <motion.button
-                        className="quantity-btn decrease-btn"
-                        whileTap={{ scale: 0.9 }}
-                        onClick={() => handleDecreaseQuantity(product)}
-                      >
-                        -
-                      </motion.button>
-                      <motion.span
-                        className="quantity"
-                        key={cart[product._id].quantity}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        {cart[product._id].quantity}
-                      </motion.span>
-                      <motion.button
-                        className="quantity-btn increase-btn"
-                        whileTap={{ scale: 0.9 }}
-                        onClick={() => handleIncreaseQuantity(product)}
-                      >
-                        +
-                      </motion.button>
-                    </div>
-                    <motion.button
-                      className="remove-btn"
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => clearFromCart(product._id)}
-                    >
-                      Remove
-                    </motion.button>
-                  </>
-                ) : (
-                  <motion.button
-                    className="add-to-cart-btn"
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => handleAddToCart(product)}
-                  >
-                    Add to Cart
-                  </motion.button>
-                )}
+          className="product-card"
+          key={product._id}
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <img
+            src={product.thumbnail.replace("http://", "https://")}
+            alt={product.name}
+            className="product-image"
+          />
+          <div className="product-info" style={{textAlign:"left"}} >
+            <h2 className="product-name">{product.name}</h2>
+            {product.shopPrices?.length > 0 && (
+              <div>
+                Shop name: <b>{cart[product._id]?.shop || product.defaultShop || "N/A"}</b>
               </div>
+            )}
+
+            <p className="product-price">
+              <span className="original-price">
+                ₹{cart[product._id]?.price || product.defaultPrice || product.price}
+              </span>
+              <span className="final-price">
+                ₹{cart[product._id]?.FinalPrice || product.defaultFinalPrice || product.FinalPrice}
+              </span>
+            </p>
+            {product.minorderquantity && (
+              <p style={{ color: "red" }}>
+                Min Order Quantity: {product.minorderquantity}
+              </p>
+            )}
+            <div style={{display:"flex",alignItems:"center"}} >
+              <div>
+            {product.shopPrices?.length > 0 && (
+              <div className="shop-selection">
+                <span style={{ cursor: "pointer", color: "red", fontSize: "13px" }}>
+                  <div>
+                    change shop
+                  </div>
+                </span>
+                <select
+                  value={cart[product._id]?.shop || product.defaultShop}
+                  onChange={(e) =>
+                    cart[product._id]
+                      ? handleShopChange(product, e.target.value)
+                      : handleAddToCart(product, e.target.value)
+                  }
+                  className="product-actions-dropdown"
+                >
+                  {product.shopPrices
+                    .sort((a, b) => a.poistionId - b.poistionId) // Sort based on positionId
+                    .map((shop) => (
+                      <option key={shop._id} value={shop.shopname}>
+                        {shop.shopname} - ₹{shop.FinalPrice}
+                      </option>
+                    ))}
+                </select>
+              </div>
+            )}
             </div>
-          </motion.div>
+            <div>
+            {cart[product._id] ? (
+              <div className="quantity-control">
+                <motion.button
+                  className="quantity-btn decrease-btn"
+                  onClick={() => handleDecreaseQuantity(product)}
+                >
+                  -
+                </motion.button>
+                <span className="quantity">
+                  {cart[product._id]?.quantity}
+                </span>
+                <motion.button
+                  className="quantity-btn increase-btn"
+                  onClick={() => handleIncreaseQuantity(product)}
+                >
+                  +
+                </motion.button>
+                <motion.button
+                  className="remove-btn"
+                  onClick={() => clearFromCart(product._id)}
+                >
+                  Remove
+                </motion.button>
+              </div>
+            ) : (
+              <motion.button
+                className="add-to-cart-btn"
+                onClick={() =>
+                  handleAddToCart(
+                    product,
+                    product.defaultShop || product.shopPrices[0]?.shopname
+                  )
+                }
+              >
+                Add to Cart
+              </motion.button>
+            )}
+            </div>
+          </div>
+          </div>
+        </motion.div>
         ))}
       </div>
       <div className="search-container">
@@ -275,108 +352,105 @@ function AllServicesPage() {
       {isSearchingProducts ? (
         <div className="product-list">
           {products.map((product) => (
-                      <motion.div
-                        className="product-card"
-                        key={product._id}
-                        initial={{ opacity: 0, y: 50 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        <img
-                          src={product.thumbnail.replace("http://", "https://")}
-                          alt={product.name}
-                          className="product-image"
-                        />
-                        <div className="product-info">
-                          <h2 className="product-name">{product.name}</h2>
-                          {product.shopPrices?.length > 0 && (
-                            <div>
-                              Shop name: <b>{cart[product._id]?.shop || product.defaultShop || "N/A"}</b>
-                            </div>
-                          )}
-        
-                          <p className="product-price">
-                            <span className="original-price">₹{product.price}</span>
-                            <span className="final-price">
-                              ₹{cart[product._id]?.FinalPrice ||
-                                product.defaultPrice ||
-                                product.FinalPrice}
-                            </span>
-                          </p>
-                          {product.minorderquantity && (
-                            <p style={{ color: "red" }}>
-                              Min Order Quantity: {product.minorderquantity}
-                            </p>
-                          )}
-                          {product.shopPrices?.length > 0 && (
-                            <div className="shop-selection">
-                              <span style={{ cursor: "pointer", color: "red", fontSize: "13px" }} >
-                                <div>
-        
-                                  change shop
-        
-                                </div>
-                              </span>
-                              <select
-                                value={cart[product._id]?.shop || product.defaultShop}
-                                onChange={(e) =>
-                                  cart[product._id]
-                                    ? handleShopChange(product, e.target.value)
-                                    : handleAddToCart(product, e.target.value)
-                                }
-                                className="product-actions-dropdown" 
-                              >
-                                {product.shopPrices
-                                  .sort((a, b) => a.poistionId - b.poistionId) // Sort based on positionId
-                                  .map((shop) => (
-                                    <option key={shop._id} value={shop.shopname}>
-                                      {shop.shopname} - ₹{shop.price}
-                                    </option>
-                                  ))}
-        
-                              </select>
-                            </div>
-                          )}
-                          {cart[product._id] ? (
-                            <div className="quantity-control">
-                              <motion.button
-                                className="quantity-btn decrease-btn"
-                                onClick={() => handleDecreaseQuantity(product)}
-                              >
-                                -
-                              </motion.button>
-                              <span className="quantity">
-                                {cart[product._id]?.quantity}
-                              </span>
-                              <motion.button
-                                className="quantity-btn increase-btn"
-                                onClick={() => handleIncreaseQuantity(product)}
-                              >
-                                +
-                              </motion.button>
-                              <motion.button
-                                className="remove-btn"
-                                onClick={() => clearFromCart(product._id)}
-                              >
-                                Remove
-                              </motion.button>
-                            </div>
-                          ) : (
-                            <motion.button
-                              className="add-to-cart-btn"
-                              onClick={() =>
-                                handleAddToCart(
-                                  product,
-                                  product.defaultShop || product.shopPrices[0]?.shopname
-                                )
-                              }
-                            >
-                              Add to Cart
-                            </motion.button>
-                          )}
-                        </div>
-                      </motion.div>
-                    ))}
+            <motion.div
+              className="product-card"
+              key={product._id}
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <img
+                src={product.thumbnail.replace("http://", "https://")}
+                alt={product.name}
+                className="product-image"
+              />
+              <div className="product-info">
+                <h2 className="product-name">{product.name}</h2>
+                {product.shopPrices?.length > 0 && (
+                  <div>
+                    Shop name: <b>{cart[product._id]?.shop || product.defaultShop || "N/A"}</b>
+                  </div>
+                )}
+
+                <p className="product-price">
+                  <span className="original-price">
+                    ₹{cart[product._id]?.price || product.defaultPrice || product.price}
+                  </span>
+                  <span className="final-price">
+                    ₹{cart[product._id]?.FinalPrice || product.defaultFinalPrice || product.FinalPrice}
+                  </span>
+                </p>
+                {product.minorderquantity && (
+                  <p style={{ color: "red" }}>
+                    Min Order Quantity: {product.minorderquantity}
+                  </p>
+                )}
+                {product.shopPrices?.length > 0 && (
+                  <div className="shop-selection">
+                    <span style={{ cursor: "pointer", color: "red", fontSize: "13px" }}>
+                      <div>
+                        change shop
+                      </div>
+                    </span>
+                    <select
+                      value={cart[product._id]?.shop || product.defaultShop}
+                      onChange={(e) =>
+                        cart[product._id]
+                          ? handleShopChange(product, e.target.value)
+                          : handleAddToCart(product, e.target.value)
+                      }
+                      className="product-actions-dropdown"
+                    >
+                      {product.shopPrices
+                        .sort((a, b) => a.poistionId - b.poistionId) // Sort based on positionId
+                        .map((shop) => (
+                          <option key={shop._id} value={shop.shopname}>
+                            {shop.shopname} - ₹{shop.FinalPrice}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                )}
+                {cart[product._id] ? (
+                  <div className="quantity-control">
+                    <motion.button
+                      className="quantity-btn decrease-btn"
+                      onClick={() => handleDecreaseQuantity(product)}
+                    >
+                      -
+                    </motion.button>
+                    <span className="quantity">
+                      {cart[product._id]?.quantity}
+                    </span>
+                    <motion.button
+                      className="quantity-btn increase-btn"
+                      onClick={() => handleIncreaseQuantity(product)}
+                    >
+                      +
+                    </motion.button>
+                    <motion.button
+                      className="remove-btn"
+                      onClick={() => clearFromCart(product._id)}
+                    >
+                      Remove
+                    </motion.button>
+                  </div>
+                ) : (
+                  <motion.button
+                    className="add-to-cart-btn"
+                    onClick={() =>
+                      handleAddToCart(
+                        product,
+                        product.defaultShop || product.shopPrices[0]?.shopname
+                      )
+                    }
+                  >
+                    Add to Cart
+                  </motion.button>
+                )}
+              </div>
+            </motion.div>
+          ))}
         </div>
       ) : (
         <div className="services-container">
@@ -408,61 +482,61 @@ function AllServicesPage() {
 
       {/* Mini Cart Popup */}
       <AnimatePresence>
-                  {Object.keys(cart).length > 0 && (
-                    <motion.div
-                      className="mini-cart"
-                      initial={{ opacity: 0, y: 100 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 100 }}
-                      transition={{ duration: 0.4 }}
-                    >
-                      <div style={{ display: "flex", justifyContent: "space-between" }}>
-                        <div className="cart-title-popup">Cart</div>
-                        <motion.button
-                          className="clear-cart-btn"
-                          whileTap={{ scale: 0.9 }}
-                          onClick={clearCart}
-                        >
-                          Clear
-                        </motion.button>
-                      </div>
-                      <ul className="cart-items">
-                        {Object.values(cart).map((item) => (
-                          <motion.li
-                            key={item._id}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: 10 }}
-                            transition={{ duration: 0.8 }}
-                          >
-                            {item.name} from <b>{item.shop}</b> x {item.quantity} = ₹
-                            {item.FinalPrice * item.quantity}
-                            <motion.button
-                              className="remove-btn-mini"
-                              whileTap={{ scale: 0.9 }}
-                              onClick={() => clearFromCart(item._id)}
-                            >
-                              Remove
-                            </motion.button>
-                          </motion.li>
-                        ))}
-                      </ul>
-                      <div className="cart-footer">
-                        <motion.p
-                          key={getTotalCartValue()}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.5 }}
-                        >
-                          Total: ₹{getTotalCartValue()}
-                        </motion.p>
-                        <Link to="/cart" style={{ textDecoration: "none" }}>
-                          <button className="buy-now-btn">Buy Now</button>
-                        </Link>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+        {Object.keys(cart).length > 0 && (
+          <motion.div
+            className="mini-cart"
+            initial={{ opacity: 0, y: 100 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 100 }}
+            transition={{ duration: 0.4 }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <div className="cart-title-popup">Cart</div>
+              <motion.button
+                className="clear-cart-btn"
+                whileTap={{ scale: 0.9 }}
+                onClick={clearCart}
+              >
+                Clear
+              </motion.button>
+            </div>
+            <ul className="cart-items">
+              {Object.values(cart).map((item) => (
+                <motion.li
+                  key={item._id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  transition={{ duration: 0.8 }}
+                >
+                  {item.name} from <b>{item.shop}</b> x {item.quantity} = ₹
+                  {item.FinalPrice * item.quantity}
+                  <motion.button
+                    className="remove-btn-mini"
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => clearFromCart(item._id)}
+                  >
+                    Remove
+                  </motion.button>
+                </motion.li>
+              ))}
+            </ul>
+            <div className="cart-footer">
+              <motion.p
+                key={getTotalCartValue()}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                Total: ₹{getTotalCartValue()}
+              </motion.p>
+              <Link to="/cart" style={{ textDecoration: "none" }}>
+                <button className="buy-now-btn">Buy Now</button>
+              </Link>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <div style={{ height: "60vh" }} ></div>
 
     </div>

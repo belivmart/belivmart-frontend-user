@@ -1,4 +1,18 @@
 /* General Styles for Cart Page */
+.delete-address-btn {
+  background-color: #f44336; /* Red */
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: 12px;
+  margin-left: 50px;
+}
+
+.delete-address-btn:hover {
+  background-color: #d32f2f;
+}
+
 .cart-page {
   padding: 20px;
   font-family: var(--font-family);

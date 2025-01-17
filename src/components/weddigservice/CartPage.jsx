@@ -22,24 +22,47 @@ const CartPage = () => {
   const [isButtonDisabled, setIsButtonDisabled] = useState(false); // State to disable the button
   const [minOrderValue] = useState(500); // Minimum order value
   const [selectedShop, setSelectedShop] = useState(null); // Track the selected shop
-
+  const [showConfirmPopup, setShowConfirmPopup] = useState(false);
+  const [deleteAddressIndex, setDeleteAddressIndex] = useState(null); // To store the index of the address to delete
+  
   const navigate = useNavigate(); // Initialize navigate for redirection
 
+  // useEffect(() => {
+  //   // Load cart and addresses from local storage
+  //   const cartData = JSON.parse(localStorage.getItem("cart"));
+  //   const savedAddresses = JSON.parse(localStorage.getItem("addresses")) || [];
+
+  //   // Convert cartData (object) to array
+  //   const cartArray = cartData ? Object.values(cartData) : [];
+
+  //   setCart(cartArray);
+  //   setAddresses(savedAddresses);
+
+  //   // Set selected shop if any
+  //   const shop = cartArray.length > 0 ? cartArray[0].shop : null;
+  //   setSelectedShop(shop);
+  // }, []);
   useEffect(() => {
     // Load cart and addresses from local storage
     const cartData = JSON.parse(localStorage.getItem("cart"));
     const savedAddresses = JSON.parse(localStorage.getItem("addresses")) || [];
-
+  
     // Convert cartData (object) to array
     const cartArray = cartData ? Object.values(cartData) : [];
-
+  
     setCart(cartArray);
     setAddresses(savedAddresses);
-
+  
     // Set selected shop if any
     const shop = cartArray.length > 0 ? cartArray[0].shop : null;
     setSelectedShop(shop);
+  console.log(savedAddresses.length);
+    // Pre-select the first address if there's only one address
+    if (savedAddresses.length == 1) {
+      setSelectedAddress(savedAddresses[0]);
+    }
   }, []);
+  
 
   const handleRemoveFromCart = (id) => {
     const updatedCart = cart.filter((item) => item._id !== id); 
@@ -130,6 +153,18 @@ const CartPage = () => {
       totalAmount: totalCartValue,
     };
 
+    const handleDeleteAddress = (index) => {
+      const updatedAddresses = addresses.filter((_, i) => i !== index); // Remove the address at the given index
+      setAddresses(updatedAddresses); // Update state
+      localStorage.setItem("addresses", JSON.stringify(updatedAddresses)); // Update local storage
+    
+      // If the deleted address was selected, reset the selected address
+      if (selectedAddress === addresses[index]) {
+        setSelectedAddress(null); // Reset selected address
+      }
+    };
+    
+
     try {
       // Call the API to create the order
       const response = await makeApi("/api/create-order", "POST", orderData);
@@ -152,9 +187,62 @@ const CartPage = () => {
     navigate("/"); // Redirect to /all-service after closing the popup
   };
 
+  const handleDeleteClick = (index) => {
+    setDeleteAddressIndex(index); // Store the address index to be deleted
+    setShowConfirmPopup(true); // Show the confirmation popup
+  };
+  const handleConfirmDelete = () => {
+    const updatedAddresses = addresses.filter((_, i) => i !== deleteAddressIndex); // Remove the address at the given index
+    setAddresses(updatedAddresses); // Update state
+    localStorage.setItem("addresses", JSON.stringify(updatedAddresses)); // Update local storage
+  
+    // Reset selected address if the deleted address was selected
+    if (selectedAddress === addresses[deleteAddressIndex]) {
+      setSelectedAddress(null);
+    }
+  
+    setShowConfirmPopup(false); // Close the confirmation popup
+  };
+    
+  const handleDeleteAddress = (index) => {
+    const updatedAddresses = addresses.filter((_, i) => i !== index); // Remove the address at the given index
+    setAddresses(updatedAddresses); // Update state
+    localStorage.setItem("addresses", JSON.stringify(updatedAddresses)); // Update local storage
+  
+    // If the deleted address was selected, reset the selected address
+    if (selectedAddress === addresses[index]) {
+      setSelectedAddress(null); // Reset selected address
+    }
+  };
+  
+
   return (
     <div className="cart-page">
       <h1 className="cart-title">Your Cart</h1>
+      {showConfirmPopup && (
+  <motion.div
+    className="confirm-popup"
+    initial={{ opacity: 0, y: 50 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: 50 }}
+  >
+    <h3>Are you sure you want to delete this address?</h3>
+    <div className="confirm-popup-buttons">
+      <button
+        className="confirm-btn"
+        onClick={handleConfirmDelete} // Confirm delete
+      >
+        Yes, Delete
+      </button>
+      <button
+        className="cancel-btn"
+        onClick={() => setShowConfirmPopup(false)} // Close the popup without deleting
+      >
+        Cancel
+      </button>
+    </div>
+  </motion.div>
+)}
 
       <div className="cart-section">
         {cart.length === 0 ? (
@@ -220,19 +308,41 @@ const CartPage = () => {
             <h2 className="section-title">Select Address</h2>
             {addresses.length > 0 ? (
               <div className="address-list">
-                {addresses.map((address, index) => (
+                {/* {addresses.map((address, index) => (
                   <div className="address-item" key={index}>
                     <input
                       type="radio"
                       name="address"
                       id={`address-${index}`}
+                      checked={selectedAddress && selectedAddress.address === address.address} 
                       onChange={() => handleSelectAddress(address)} // Update selected address
                     />
                     <label htmlFor={`address-${index}`}>
                       {address.userName} - {address.mobileNumber}, {address.address}
                     </label>
                   </div>
-                ))}
+                ))} */}
+                {addresses.map((address, index) => (
+  <div className="address-item" key={index}>
+    <input
+      type="radio"
+      name="address"
+      id={`address-${index}`}
+      checked={selectedAddress && selectedAddress.address === address.address}  // Check if this address is selected
+      onChange={() => handleSelectAddress(address)} // Update selected address
+    />
+    <label htmlFor={`address-${index}`}>
+      {address.userName} - {address.mobileNumber}, {address.address}
+    </label>
+    <button
+      className="delete-address-btn"
+      onClick={() => handleDeleteAddress(index)} // Call delete function
+    >
+      Delete
+    </button>
+  </div>
+))}
+
               </div>
             ) : (
               <p className="no-address-message">
