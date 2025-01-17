@@ -160,7 +160,7 @@ function AllServicesPage() {
   //     },
   //   }));
   // };
-   const handleAddToCart = (product, selectedShop) => {
+  const handleAddToCart = (product, selectedShop) => {
     const shopDetails = product.shopPrices.find(
       (shop) => shop.shopname === selectedShop
     );
@@ -229,109 +229,115 @@ function AllServicesPage() {
       <div className="product-list">
         {topsall.map((product) => (
           <motion.div
-          className="product-card"
-          key={product._id}
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <img
-            src={product.thumbnail.replace("http://", "https://")}
-            alt={product.name}
-            className="product-image"
-          />
-          <div className="product-info" style={{textAlign:"left"}} >
-            <h2 className="product-name">{product.name}</h2>
-            {product.shopPrices?.length > 0 && (
-              <div>
-                Shop name: <b>{cart[product._id]?.shop || product.defaultShop || "N/A"}</b>
-              </div>
-            )}
+            className="product-card"
+            key={product._id}
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <img
+              src={product.thumbnail.replace("http://", "https://")}
+              alt={product.name}
+              className="product-image"
+            />
+            <div className="product-info" style={{ textAlign: "left" }} >
+              <h2 className="product-name">{product.name}</h2>
+              {product.shopPrices?.length > 0 && (
+                <div>
+                  Shop name: <b>{cart[product._id]?.shop || product.defaultShop || "N/A"}</b>
+                </div>
+              )}
 
-            <p className="product-price">
-              <span className="original-price">
-                ₹{cart[product._id]?.price || product.defaultPrice || product.price}
-              </span>
-              <span className="final-price">
-                ₹{cart[product._id]?.FinalPrice || product.defaultFinalPrice || product.FinalPrice}
-              </span>
-            </p>
-            {product.minorderquantity && (
-              <p style={{ color: "red" }}>
-                Min Order Quantity: {product.minorderquantity}
+              <p className="product-price">
+                <span className="original-price">
+                  ₹{cart[product._id]?.price || product.defaultPrice || product.price}
+                </span>
+                <span className="final-price">
+                  ₹{cart[product._id]?.FinalPrice || product.defaultFinalPrice || product.FinalPrice}
+                </span>
               </p>
-            )}
-            <div style={{display:"flex",alignItems:"center"}} >
-              <div>
-            {product.shopPrices?.length > 0 && (
-              <div className="shop-selection">
-                <span style={{ cursor: "pointer", color: "red", fontSize: "13px" }}>
-                  <div>
-                    change shop
-                  </div>
-                </span>
-                <select
-                  value={cart[product._id]?.shop || product.defaultShop}
-                  onChange={(e) =>
-                    cart[product._id]
-                      ? handleShopChange(product, e.target.value)
-                      : handleAddToCart(product, e.target.value)
-                  }
-                  className="product-actions-dropdown"
-                >
-                  {product.shopPrices
-                    .sort((a, b) => a.poistionId - b.poistionId) // Sort based on positionId
-                    .map((shop) => (
-                      <option key={shop._id} value={shop.shopname}>
-                        {shop.shopname} - ₹{shop.FinalPrice}
-                      </option>
-                    ))}
-                </select>
+              {product.minorderquantity && (
+                <p style={{ color: "red" }}>
+                  Min Order Quantity: {product.minorderquantity}
+                </p>
+              )}
+              <div style={{ display: "flex", alignItems: "center" }} >
+                <div>
+                  {product.shopPrices?.length > 0 && (
+                    <div className="shop-selection">
+                      <span style={{ cursor: "pointer", color: "red", fontSize: "13px" }}>
+                        <div>
+                          change shop
+                        </div>
+                      </span>
+                      <select
+                        value={cart[product._id]?.shop || product.defaultShop}
+                        onChange={(e) =>
+                          cart[product._id]
+                            ? handleShopChange(product, e.target.value)
+                            : handleAddToCart(product, e.target.value)
+                        }
+                        className="product-actions-dropdown"
+                      >
+                        {product.shopPrices
+                          .sort((a, b) => a.poistionId - b.poistionId) // Sort based on positionId
+                          .map((shop) => (
+                            <option key={shop._id} value={shop.shopname}>
+                              {shop.shopname} - ₹{shop.FinalPrice}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+                  )}
+                </div>
+                <div>
+                  {cart[product._id] ? (
+                    <div className="quantity-control"  >
+                      <div style={{marginBottom:"4px"}} >
+
+                      <motion.button
+                        className="quantity-btn decrease-btn"
+                        onClick={() => handleDecreaseQuantity(product)}
+                        >
+                        -
+                      </motion.button>
+                      <span className="quantity">
+                        {cart[product._id]?.quantity}
+                      </span>
+                      <motion.button
+                        className="quantity-btn increase-btn"
+                        onClick={() => handleIncreaseQuantity(product)}
+                        >
+                        +
+                      </motion.button>
+                        </div>
+                        <div>
+
+                      <motion.button
+                        className="remove-btn"
+                        onClick={() => clearFromCart(product._id)}
+                        >
+                        Remove
+                      </motion.button>
+                        </div>
+                    </div>
+                  ) : (
+                    <motion.button
+                      className="add-to-cart-btn"
+                      onClick={() =>
+                        handleAddToCart(
+                          product,
+                          product.defaultShop || product.shopPrices[0]?.shopname
+                        )
+                      }
+                    >
+                      Add to Cart
+                    </motion.button>
+                  )}
+                </div>
               </div>
-            )}
             </div>
-            <div>
-            {cart[product._id] ? (
-              <div className="quantity-control">
-                <motion.button
-                  className="quantity-btn decrease-btn"
-                  onClick={() => handleDecreaseQuantity(product)}
-                >
-                  -
-                </motion.button>
-                <span className="quantity">
-                  {cart[product._id]?.quantity}
-                </span>
-                <motion.button
-                  className="quantity-btn increase-btn"
-                  onClick={() => handleIncreaseQuantity(product)}
-                >
-                  +
-                </motion.button>
-                <motion.button
-                  className="remove-btn"
-                  onClick={() => clearFromCart(product._id)}
-                >
-                  Remove
-                </motion.button>
-              </div>
-            ) : (
-              <motion.button
-                className="add-to-cart-btn"
-                onClick={() =>
-                  handleAddToCart(
-                    product,
-                    product.defaultShop || product.shopPrices[0]?.shopname
-                  )
-                }
-              >
-                Add to Cart
-              </motion.button>
-            )}
-            </div>
-          </div>
-          </div>
-        </motion.div>
+          </motion.div>
         ))}
       </div>
       <div className="search-container">
